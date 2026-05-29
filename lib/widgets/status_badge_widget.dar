@@ -1,0 +1,111 @@
+import 'package:flutter/material.dart';
+
+enum BadgeStatus {
+  active,
+  locked,
+  completed,
+  inProgress,
+  mastered,
+  warning,
+  info,
+}
+
+class StatusBadgeWidget extends StatelessWidget {
+  final BadgeStatus status;
+  final String? label;
+  final double fontSize;
+
+  const StatusBadgeWidget({
+    super.key,
+    required this.status,
+    this.label,
+    this.fontSize = 11,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final config = _getConfig();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: config.bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: config.border, width: 1),
+      ),
+      child: Text(
+        label ?? config.defaultLabel,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: config.text,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+
+  _BadgeConfig _getConfig() {
+    switch (status) {
+      case BadgeStatus.active:
+        return _BadgeConfig(
+          bg: const Color(0xFFD1FAE5),
+          border: const Color(0xFF34D399),
+          text: const Color(0xFF065F46),
+          defaultLabel: 'Active',
+        );
+      case BadgeStatus.locked:
+        return _BadgeConfig(
+          bg: const Color(0xFFF3F4F6),
+          border: const Color(0xFFD1D5DB),
+          text: const Color(0xFF6B7280),
+          defaultLabel: 'Locked',
+        );
+      case BadgeStatus.completed:
+        return _BadgeConfig(
+          bg: const Color(0xFFEDE9FE),
+          border: const Color(0xFFA855F7),
+          text: const Color(0xFF6D28D9),
+          defaultLabel: 'Done',
+        );
+      case BadgeStatus.inProgress:
+        return _BadgeConfig(
+          bg: const Color(0xFFFEF3C7),
+          border: const Color(0xFFFBBF24),
+          text: const Color(0xFF92400E),
+          defaultLabel: 'In Progress',
+        );
+      case BadgeStatus.mastered:
+        return _BadgeConfig(
+          bg: const Color(0xFFECFDF5),
+          border: const Color(0xFF10B981),
+          text: const Color(0xFF065F46),
+          defaultLabel: 'Mastered',
+        );
+      case BadgeStatus.warning:
+        return _BadgeConfig(
+          bg: const Color(0xFFFFF7ED),
+          border: const Color(0xFFFD8C00),
+          text: const Color(0xFF9A3412),
+          defaultLabel: 'Warning',
+        );
+      case BadgeStatus.info:
+        return _BadgeConfig(
+          bg: const Color(0xFFEFF6FF),
+          border: const Color(0xFF60A5FA),
+          text: const Color(0xFF1D4ED8),
+          defaultLabel: 'Info',
+        );
+    }
+  }
+}
+
+class _BadgeConfig {
+  final Color bg, border, text;
+  final String defaultLabel;
+  const _BadgeConfig({
+    required this.bg,
+    required this.border,
+    required this.text,
+    required this.defaultLabel,
+  });
+}
