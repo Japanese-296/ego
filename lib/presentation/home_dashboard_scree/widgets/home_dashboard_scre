@@ -1,0 +1,248 @@
+import 'package:flutter/material.dart';
+
+import './widgets/activity_section_widget.dart';
+import './widgets/avg_progress_card_widget.dart';
+import './widgets/dashboard_app_bar_widget.dart';
+import './widgets/dashboard_kpi_strip_widget.dart';
+import './widgets/hero_banner_widget.dart';
+import './widgets/quick_stat_tiles_widget.dart';
+import './widgets/study_chart_widget.dart';
+
+class HomeDashboardScreen extends StatefulWidget {
+  const HomeDashboardScreen({super.key});
+
+  @override
+  State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
+}
+
+class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
+  // TODO: Replace with Riverpod for production
+
+  final Map<String, dynamic> _userData = {
+    'name': 'Arjun',
+    'cefrLevel': 'B1',
+    'xp': 2840,
+    'streak': 14,
+    'studyHoursThisWeek': 4.5,
+    'vocabularyMastered': 312,
+    'avgProgress': 0.78,
+    'avatarUrl':
+        'https://img.rocket.new/generatedImages/rocket_gen_img_17c989f9e-1763293351359.png',
+    'avatarSemanticLabel':
+        'Professional headshot of young Indian man with short dark hair smiling',
+  };
+
+  final List<Map<String, dynamic>> _activityData = [
+    {
+      'title': 'Learning Units',
+      'count': 12,
+      'unit': 'lessons',
+      'color': const Color(0xFFEDE9FE),
+      'iconColor': const Color(0xFF7C3AED),
+      'icon': Icons.menu_book_rounded,
+      'participants': 30,
+      'imageUrl':
+          'https://images.unsplash.com/photo-1506612966115-4ee2c4c93e2d',
+      'imageSemanticLabel':
+          'Open blue book with pages spread on warm yellow background',
+    },
+    {
+      'title': 'Study Hours',
+      'count': 43,
+      'unit': 'hours',
+      'color': const Color(0xFFFEF9C3),
+      'iconColor': const Color(0xFFEAB308),
+      'icon': Icons.timer_outlined,
+      'participants': 40,
+      'imageUrl':
+          'https://img.rocket.new/generatedImages/rocket_gen_img_199e58268-1779096201659.png',
+      'imageSemanticLabel':
+          'Gold alarm clock on purple background indicating study time',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _quickStats = [
+    {
+      'label': 'My Classes',
+      'count': 40,
+      'icon': Icons.class_outlined,
+      'color': const Color(0xFFEDE9FE),
+    },
+    {
+      'label': 'My Lessons',
+      'count': 12,
+      'icon': Icons.menu_book_outlined,
+      'color': const Color(0xFFEDE9FE),
+    },
+    {
+      'label': 'Schedule',
+      'count': 32,
+      'icon': Icons.calendar_today_outlined,
+      'color': const Color(0xFFFEF9C3),
+    },
+  ];
+
+  // Weekly study hours (Sun–Sat), realistic variance
+  final List<double> _weeklyHours = [1.5, 2.0, 1.0, 4.5, 3.5, 2.5, 0.5];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width >= 600;
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: isTablet
+            ? _buildTabletLayout(theme, bottomPad)
+            : _buildPhoneLayout(theme, bottomPad),
+      ),
+    );
+  }
+
+  Widget _buildPhoneLayout(ThemeData theme, double bottomPad) {
+    return CustomScrollView(
+      slivers: [
+        // Fixed AppBar
+        SliverToBoxAdapter(
+          child: DashboardAppBarWidget(
+            userName: _userData['name'] as String,
+            cefrLevel: _userData['cefrLevel'] as String,
+            streak: _userData['streak'] as int,
+            avatarUrl: _userData['avatarUrl'] as String,
+            avatarSemanticLabel: _userData['avatarSemanticLabel'] as String,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: DashboardKpiStripWidget(
+              xp: _userData['xp'] as int,
+              streak: _userData['streak'] as int,
+              cefrLevel: _userData['cefrLevel'] as String,
+              studyHours: _userData['studyHoursThisWeek'] as double,
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: HeroBannerWidget(
+              title: 'Olympiad\nMastery Hub',
+              subtitle:
+                  'Smart English Olympiads Built For Faster Learning Success',
+              ctaLabel: 'Start Now',
+              onCtaTap: () {},
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ActivitySectionWidget(activities: _activityData),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: QuickStatTilesWidget(stats: _quickStats),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: AvgProgressCardWidget(
+              progress: _userData['avgProgress'] as double,
+              label: 'Average Progress',
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: StudyChartWidget(weeklyHours: _weeklyHours),
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: bottomPad + 88)),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(ThemeData theme, double bottomPad) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 6,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: DashboardAppBarWidget(
+                  userName: _userData['name'] as String,
+                  cefrLevel: _userData['cefrLevel'] as String,
+                  streak: _userData['streak'] as int,
+                  avatarUrl: _userData['avatarUrl'] as String,
+                  avatarSemanticLabel:
+                      _userData['avatarSemanticLabel'] as String,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: HeroBannerWidget(
+                    title: 'Olympiad Mastery Hub',
+                    subtitle:
+                        'Smart English Olympiads Built For Faster Learning Success',
+                    ctaLabel: 'Start Now',
+                    onCtaTap: () {},
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ActivitySectionWidget(activities: _activityData),
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: bottomPad + 88)),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 4,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(0, 16, 24, 88),
+            child: Column(
+              children: [
+                DashboardKpiStripWidget(
+                  xp: _userData['xp'] as int,
+                  streak: _userData['streak'] as int,
+                  cefrLevel: _userData['cefrLevel'] as String,
+                  studyHours: _userData['studyHoursThisWeek'] as double,
+                  vertical: true,
+                ),
+                const SizedBox(height: 16),
+                QuickStatTilesWidget(stats: _quickStats),
+                const SizedBox(height: 16),
+                AvgProgressCardWidget(
+                  progress: _userData['avgProgress'] as double,
+                  label: 'Average Progress',
+                ),
+                const SizedBox(height: 16),
+                StudyChartWidget(weeklyHours: _weeklyHours),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
