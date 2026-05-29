@@ -1,0 +1,118 @@
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+
+class OnboardingParticlesWidget extends StatefulWidget {
+  const OnboardingParticlesWidget({super.key});
+
+  @override
+  State<OnboardingParticlesWidget> createState() =>
+      _OnboardingParticlesWidgetState();
+}
+
+class _OnboardingParticlesWidgetState extends State<OnboardingParticlesWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  final List<_Particle> _particles = [];
+  final math.Random _random = math.Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
+    for (int i = 0; i < 18; i++) {
+      _particles.add(_Particle(random: _random, index: i));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return CustomPaint(
+          painter: _ParticlePainter(
+            particles: _particles,
+            progress: _controller.value,
+            isDark: isDark,
+          ),
+          size: Size.infinite,
+        );
+      },
+    );
+  }
+}
+
+class _Particle {
+  final double x;
+  final double y;
+  final double size;
+  final double speed;
+  final double phase;
+  final int colorIndex;
+
+  _Particle({required math.Random random, required int index})
+    : x = random.nextDouble(),
+      y = random.nextDouble(),
+      size = 2 + random.nextDouble() * 4,
+      speed = 0.3 + random.nextDouble() * 0.7,
+      phase = random.nextDouble() * 2 * math.pi,
+      colorIndex = index % 4;
+}
+
+class _ParticlePainter extends CustomPainter {
+  final List<_Particle> particles;
+  final double progress;
+  final bool isDark;
+
+  _ParticlePainter({
+    required this.particles,
+    required this.progress,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final colors = isDark
+        ? [
+            const Color(0x55A855F7),
+            const Color(0x5522D3EE),
+            const Color(0x55EAB308),
+            const Color(0x5534D399),
+          ]
+        : [
+            const Color(0x337C3AED),
+            const Color(0x3306B6D4),
+            const Color(0x33EAB308),
+            const Color(0x3310B981),
+          ];
+
+    for (final p in particles) {
+      final t = (progress * p.speed + p.phase / (2 * math.pi)) % 1.0;
+      final yOffset = math.sin(t * 2 * math.pi) * 0.05;
+      final xOffset = math.cos(t * 2 * math.pi + p.phase) * 0.02;
+
+      final px = (p.x + xOffset) * size.width;
+      final py = (p.y + yOffset) * size.height;
+
+      final paint = Paint()
+        ..color = colors[p.colorIndex]
+        ..style = PaintingStyle.fill;
+
+      canvas.drawCircle(Offset(px, py), p.size, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ParticlePainter old) =>
+      old.progress != progress || old.isDark != isDark;
+}
