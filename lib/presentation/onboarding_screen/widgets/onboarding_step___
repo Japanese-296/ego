@@ -1,0 +1,241 @@
+import 'package:flutter/material.dart';
+
+class OnboardingStepTwoWidget extends StatelessWidget {
+  final List<String> cefrLevels;
+  final String selectedCefr;
+  final ValueChanged<String> onCefrSelected;
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+
+  const OnboardingStepTwoWidget({
+    super.key,
+    required this.cefrLevels,
+    required this.selectedCefr,
+    required this.onCefrSelected,
+    required this.onNext,
+    required this.onBack,
+  });
+
+  static const Map<String, String> _cefrDescriptions = {
+    'A1': 'Beginner — Basic phrases',
+    'A2': 'Elementary — Simple sentences',
+    'B1': 'Intermediate — Everyday topics',
+    'B2': 'Upper-Intermediate — Complex ideas',
+    'C1': 'Advanced — Fluent expression',
+    'C2': 'Mastery — Near-native proficiency',
+  };
+
+  static const Map<String, Color> _cefrColors = {
+    'A1': Color(0xFF34D399),
+    'A2': Color(0xFF10B981),
+    'B1': Color(0xFF3B82F6),
+    'B2': Color(0xFF6366F1),
+    'C1': Color(0xFFA855F7),
+    'C2': Color(0xFFEAB308),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          Text(
+            'What\'s your\nEnglish Level?',
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select your current CEFR proficiency level',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 28),
+          Expanded(
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.6,
+              ),
+              itemCount: cefrLevels.length,
+              itemBuilder: (_, i) {
+                final level = cefrLevels[i];
+                final isSelected = level == selectedCefr;
+                final color = _cefrColors[level] ?? theme.colorScheme.primary;
+                return GestureDetector(
+                  onTap: () => onCefrSelected(level),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutCubic,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: isSelected
+                          ? LinearGradient(
+                              colors: [color.withAlpha(230), color],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: isSelected
+                          ? null
+                          : (isDark
+                                ? const Color(0xFF2D1B4E)
+                                : const Color(0xFFF5F3FF)),
+                      border: Border.all(
+                        color: isSelected ? color : color.withAlpha(77),
+                        width: isSelected ? 2 : 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: color.withAlpha(89),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                level,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? Colors.white : color,
+                                ),
+                              ),
+                              if (isSelected)
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                            ],
+                          ),
+                          Text(
+                            _cefrDescriptions[level] ?? '',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: isSelected
+                                  ? Colors.white.withAlpha(230)
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          _OnboardingNavRow(onNext: onNext, onBack: onBack, label: 'Continue'),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _OnboardingNavRow extends StatelessWidget {
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+  final String label;
+
+  const _OnboardingNavRow({
+    required this.onNext,
+    required this.onBack,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: onBack,
+          child: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.surfaceContainerHighest,
+              border: Border.all(color: theme.colorScheme.outline),
+            ),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              size: 20,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: GestureDetector(
+            onTap: onNext,
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFA855F7)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C3AED).withAlpha(89),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
