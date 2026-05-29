@@ -1,0 +1,228 @@
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+// Anatomy locked: Row [illustration 30%] + [title+number+avatars 70%] + arrow circle
+class ActivityCardWidget extends StatelessWidget {
+  final Map<String, dynamic> activity;
+
+  const ActivityCardWidget({super.key, required this.activity});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = (activity['color'] as Color?) ?? const Color(0xFFEDE9FE);
+    final iconColor =
+        (activity['iconColor'] as Color?) ?? const Color(0xFF7C3AED);
+    final count = activity['count'] as int;
+    final unit = activity['unit'] as String;
+    final title = activity['title'] as String;
+    final participants = activity['participants'] as int;
+    final imageUrl = activity['imageUrl'] as String? ?? '';
+    final imageSemanticLabel =
+        activity['imageSemanticLabel'] as String? ?? title;
+
+    return Container(
+      height: 110,
+      decoration: BoxDecoration(
+        color: isDark
+            ? Color.alphaBlend(bgColor.withAlpha(38), const Color(0xFF1A1025))
+            : bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? iconColor.withAlpha(51) : iconColor.withAlpha(38),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: iconColor.withOpacity(isDark ? 0.1 : 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Illustration — 30%
+          SizedBox(
+            width: 110,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+              ),
+              child: imageUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          _buildIconFallback(iconColor),
+                    )
+                  : _buildIconFallback(iconColor),
+            ),
+          ),
+          // Content — 70%
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Title + participant avatars
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      _ParticipantAvatars(
+                        count: participants,
+                        color: iconColor,
+                      ),
+                    ],
+                  ),
+                  // Count + unit
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? theme.colorScheme.onSurface
+                              : const Color(0xFF1A1A2E),
+                          height: 1.0,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          unit,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Arrow FAB
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: iconColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withAlpha(89),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_outward_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIconFallback(Color iconColor) {
+    return Container(
+      color: iconColor.withAlpha(38),
+      child: Center(
+        child: Icon(
+          activity['icon'] as IconData? ?? Icons.book_rounded,
+          size: 40,
+          color: iconColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _ParticipantAvatars extends StatelessWidget {
+  final int count;
+  final Color color;
+
+  const _ParticipantAvatars({required this.count, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final displayCount = count > 30 ? '30+' : '$count';
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 3 avatar circles stacked
+        SizedBox(
+          width: 52,
+          height: 20,
+          child: Stack(
+            children: List.generate(3, (i) {
+              final colors = [
+                const Color(0xFF7C3AED),
+                const Color(0xFFEAB308),
+                const Color(0xFF06B6D4),
+              ];
+              return Positioned(
+                left: i * 14.0,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: colors[i],
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.person_rounded,
+                      size: 11,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withAlpha(38),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            displayCount,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
