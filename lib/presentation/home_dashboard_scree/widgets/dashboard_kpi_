@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+
+class DashboardKpiStripWidget extends StatelessWidget {
+  final int xp;
+  final int streak;
+  final String cefrLevel;
+  final double studyHours;
+  final bool vertical;
+
+  const DashboardKpiStripWidget({
+    super.key,
+    required this.xp,
+    required this.streak,
+    required this.cefrLevel,
+    required this.studyHours,
+    this.vertical = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final chips = [
+      _KpiChip(
+        icon: Icons.bolt_rounded,
+        iconColor: const Color(0xFFEAB308),
+        bgColor: isDark ? const Color(0xFF3A2A00) : const Color(0xFFFEF9C3),
+        borderColor: const Color(0xFFEAB308),
+        label: '$xp XP',
+        caption: 'Total',
+      ),
+      _KpiChip(
+        icon: Icons.local_fire_department_rounded,
+        iconColor: const Color(0xFFEF4444),
+        bgColor: isDark ? const Color(0xFF3A0000) : const Color(0xFFFEE2E2),
+        borderColor: const Color(0xFFEF4444),
+        label: '$streak days',
+        caption: 'Streak',
+      ),
+      _KpiChip(
+        icon: Icons.school_rounded,
+        iconColor: const Color(0xFF7C3AED),
+        bgColor: isDark ? const Color(0xFF2D1B4E) : const Color(0xFFEDE9FE),
+        borderColor: const Color(0xFF7C3AED),
+        label: 'CEFR $cefrLevel',
+        caption: 'Level',
+      ),
+      _KpiChip(
+        icon: Icons.access_time_rounded,
+        iconColor: const Color(0xFF06B6D4),
+        bgColor: isDark ? const Color(0xFF001A1F) : const Color(0xFFECFEFF),
+        borderColor: const Color(0xFF06B6D4),
+        label: '${studyHours}h',
+        caption: 'This week',
+      ),
+    ];
+
+    if (vertical) {
+      return Column(
+        children: chips
+            .map(
+              (c) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _buildChipTile(c, theme),
+              ),
+            )
+            .toList(),
+      );
+    }
+
+    return SizedBox(
+      height: 76,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: chips.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) => _buildChipTile(chips[i], theme),
+      ),
+    );
+  }
+
+  Widget _buildChipTile(_KpiChip chip, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      constraints: const BoxConstraints(minWidth: 100),
+      decoration: BoxDecoration(
+        color: chip.bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: chip.borderColor.withAlpha(102)),
+        boxShadow: [
+          BoxShadow(
+            color: chip.borderColor.withAlpha(31),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(chip.icon, size: 16, color: chip.iconColor),
+              const SizedBox(width: 4),
+              Text(
+                chip.caption,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: chip.iconColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            chip.label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: chip.iconColor,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KpiChip {
+  final IconData icon;
+  final Color iconColor;
+  final Color bgColor;
+  final Color borderColor;
+  final String label;
+  final String caption;
+
+  const _KpiChip({
+    required this.icon,
+    required this.iconColor,
+    required this.bgColor,
+    required this.borderColor,
+    required this.label,
+    required this.caption,
+  });
+}
