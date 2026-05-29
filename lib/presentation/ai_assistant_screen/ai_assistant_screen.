@@ -1,0 +1,603 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class AiAssistantScreen extends StatefulWidget {
+  const AiAssistantScreen({super.key});
+
+  @override
+  State<AiAssistantScreen> createState() => _AiAssistantScreenState();
+}
+
+class _AiAssistantScreenState extends State<AiAssistantScreen>
+    with TickerProviderStateMixin {
+  final TextEditingController _inputController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isTyping = false;
+
+  final List<Map<String, dynamic>> _messages = [
+    {
+      'role': 'ai',
+      'text':
+          'Hello! I\'m your AI English Study Assistant 🤖✨\n\nI can help you with:\n• Grammar explanations\n• Vocabulary building\n• Pronunciation tips\n• Writing corrections\n• Conversation practice\n\nWhat would you like to learn today?',
+      'time': '09:00 AM',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _quickPrompts = [
+    {
+      'label': '📝 Grammar Help',
+      'text': 'Explain the difference between "will" and "going to"',
+    },
+    {
+      'label': '📖 Vocabulary',
+      'text': 'Give me 5 advanced vocabulary words with examples',
+    },
+    {
+      'label': '🗣️ Pronunciation',
+      'text': 'How do I pronounce "thorough" correctly?',
+    },
+    {
+      'label': '✍️ Writing',
+      'text': 'Help me write a formal email to my professor',
+    },
+    {
+      'label': '💬 Conversation',
+      'text': 'Let\'s practice a job interview conversation',
+    },
+    {
+      'label': '📚 CEFR Tips',
+      'text': 'What skills do I need to reach B2 level?',
+    },
+  ];
+
+  final List<String> _aiResponses = [
+    'Great question! 🌟 The difference between "will" and "going to" is:\n\n**Will** → spontaneous decisions, predictions without evidence\n• "I\'ll help you with that!"\n• "It will rain tomorrow."\n\n**Going to** → planned intentions, predictions with evidence\n• "I\'m going to study tonight."\n• "Look at those clouds — it\'s going to rain!"\n\nTip: If you decide at the moment of speaking, use "will". If you planned it before, use "going to". 📌',
+    'Here are 5 advanced vocabulary words for you! ✨\n\n1. **Ephemeral** (adj) — lasting for a very short time\n   *"The ephemeral beauty of cherry blossoms."*\n\n2. **Ubiquitous** (adj) — present everywhere\n   *"Smartphones are ubiquitous in modern life."*\n\n3. **Eloquent** (adj) — fluent and persuasive in speaking\n   *"She gave an eloquent speech."*\n\n4. **Pragmatic** (adj) — dealing with things practically\n   *"A pragmatic approach to problem-solving."*\n\n5. **Resilient** (adj) — able to recover quickly\n   *"Children are remarkably resilient."*\n\nTry using one of these in a sentence! 💪',
+    'The word "thorough" is pronounced: **/ˈθʌr.ə/** 🎵\n\nBreaking it down:\n• "th" → like in "think" (not "the")\n• "or" → sounds like "ur" (schwa)\n• "ough" → completely silent!\n\nSo it sounds like: **"THUR-uh"**\n\nCommon mistake: Many learners say "thor-ow" — avoid this!\n\nPractice sentence: *"She did a thorough job cleaning the house."* 🏠\n\nWant me to explain more "ough" words? They all sound different! 😄',
+    'Here\'s a formal email template for your professor! 📧\n\n---\nSubject: Request for Extension — [Assignment Name]\n\nDear Professor [Name],\n\nI hope this email finds you well. I am writing to respectfully request a brief extension for [assignment name], originally due on [date].\n\nDue to [brief reason], I have been unable to complete the work to the standard I know you expect. I would greatly appreciate an extension until [new date].\n\nI apologize for any inconvenience this may cause and assure you this will not affect the quality of my submission.\n\nThank you for your understanding.\n\nSincerely,\n[Your Name]\n[Student ID]\n---\n\nKey tips: Be concise, polite, and always offer a specific new deadline! ✅',
+    'Let\'s practice a job interview! 🎯 I\'ll be the interviewer.\n\n**Interviewer:** Good morning! Thank you for coming in today. Could you please start by telling me a little about yourself?\n\n*(Your turn! Try to answer in 2-3 sentences. Mention your background, skills, and why you\'re interested in this role.)*\n\n💡 **Tips for this question:**\n• Keep it professional (1-2 minutes)\n• Start with your current situation\n• Mention relevant experience\n• End with why you want THIS job\n\nGo ahead — I\'m listening! 😊',
+    'To reach B2 level (Upper Intermediate), focus on these key skills! 🎓\n\n**Reading (B2):**\n• Read articles, news, and novels\n• Understand implicit meaning\n• Identify writer\'s attitude\n\n**Listening (B2):**\n• Follow complex speeches\n• Understand native-speed conversations\n• Catch humor and sarcasm\n\n**Speaking (B2):**\n• Express opinions clearly\n• Discuss abstract topics\n• Use a wide range of vocabulary\n\n**Writing (B2):**\n• Write clear, detailed essays\n• Argue a point effectively\n• Use complex grammar structures\n\n**Recommended daily practice:**\n• 30 min reading\n• 20 min listening\n• 15 min speaking\n• 10 min writing\n\nYou\'re on the right track! 🚀',
+    'That\'s a wonderful question! Let me help you understand this better. 🌟\n\nEnglish has many nuances that make it fascinating to learn. The key is consistent practice and exposure to authentic materials.\n\nHere are some tips:\n• Read English content daily\n• Watch English movies/shows with subtitles\n• Practice speaking with native speakers\n• Keep a vocabulary journal\n• Review grammar rules regularly\n\nRemember: Every expert was once a beginner! Keep going! 💪✨',
+  ];
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _inputController.dispose();
+    _scrollController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage(String text) {
+    if (text.trim().isEmpty) return;
+    setState(() {
+      _messages.add({
+        'role': 'user',
+        'text': text.trim(),
+        'time': _currentTime(),
+      });
+      _isTyping = true;
+      _inputController.clear();
+    });
+    _scrollToBottom();
+
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!mounted) return;
+      final random = Random();
+      final response = _aiResponses[random.nextInt(_aiResponses.length)];
+      setState(() {
+        _isTyping = false;
+        _messages.add({'role': 'ai', 'text': response, 'time': _currentTime()});
+      });
+      _scrollToBottom();
+    });
+  }
+
+  String _currentTime() {
+    final now = DateTime.now();
+    final hour = now.hour > 12
+        ? now.hour - 12
+        : now.hour == 0
+        ? 12
+        : now.hour;
+    final min = now.minute.toString().padLeft(2, '0');
+    final period = now.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$min $period';
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark
+          ? const Color(0xFF0D0A1A)
+          : const Color(0xFFF8F7FF),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(isDark),
+            _buildQuickPrompts(isDark),
+            Expanded(child: _buildMessageList(isDark)),
+            if (_isTyping) _buildTypingIndicator(isDark),
+            _buildInputBar(isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A1025) : Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0x33A855F7) : const Color(0x22A855F7),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) => Transform.scale(
+              scale: _pulseAnimation.value,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7C3AED).withAlpha(102),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AI Study Assistant',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? const Color(0xFFE8E0FF)
+                        : const Color(0xFF1A1A2E),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF34D399),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Online • Ready to help',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFF9D8EC4)
+                            : const Color(0xFF6B5B8E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color(0xFF7C3AED).withAlpha(26),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF7C3AED).withAlpha(77)),
+            ),
+            child: Text(
+              'B1 Mode',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF7C3AED),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickPrompts(bool isDark) {
+    return SizedBox(
+      height: 44,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        itemCount: _quickPrompts.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final p = _quickPrompts[i];
+          return GestureDetector(
+            onTap: () => _sendMessage(p['text'] as String),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF2D1B4E)
+                    : const Color(0xFFEDE9FE),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0x44A855F7)
+                      : const Color(0x33A855F7),
+                ),
+              ),
+              child: Text(
+                p['label'] as String,
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isDark
+                      ? const Color(0xFFCBBEF0)
+                      : const Color(0xFF4C4469),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMessageList(bool isDark) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      itemCount: _messages.length,
+      itemBuilder: (context, i) {
+        final msg = _messages[i];
+        final isAi = msg['role'] == 'ai';
+        return _buildMessageBubble(msg, isAi, isDark);
+      },
+    );
+  }
+
+  Widget _buildMessageBubble(Map<String, dynamic> msg, bool isAi, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: isAi
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
+        children: [
+          if (isAi) ...[
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                ),
+              ),
+              child: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isAi
+                    ? (isDark
+                          ? const Color(0xFF2D1B4E)
+                          : const Color(0xFFEDE9FE))
+                    : const Color(0xFF7C3AED),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(isAi ? 4 : 18),
+                  bottomRight: Radius.circular(isAi ? 18 : 4),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        (isAi
+                                ? const Color(0xFF7C3AED)
+                                : const Color(0xFF7C3AED))
+                            .withAlpha(38),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    msg['text'] as String,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: isAi
+                          ? (isDark
+                                ? const Color(0xFFE8E0FF)
+                                : const Color(0xFF1A1A2E))
+                          : Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    msg['time'] as String,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      color: isAi
+                          ? (isDark
+                                ? const Color(0xFF9D8EC4)
+                                : const Color(0xFF6B5B8E))
+                          : Colors.white60,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (!isAi) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: const Color(0xFFEDE9FE),
+              child: Text(
+                'A',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF7C3AED),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypingIndicator(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+              ),
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2D1B4E) : const Color(0xFFEDE9FE),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomRight: Radius.circular(18),
+                bottomLeft: Radius.circular(4),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(3, (i) {
+                return _TypingDot(delay: Duration(milliseconds: i * 200));
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputBar(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A1025) : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0x33A855F7) : const Color(0x22A855F7),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF2D1B4E)
+                    : const Color(0xFFF5F3FF),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0x44A855F7)
+                      : const Color(0x33A855F7),
+                ),
+              ),
+              child: TextField(
+                controller: _inputController,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  color: isDark
+                      ? const Color(0xFFE8E0FF)
+                      : const Color(0xFF1A1A2E),
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Ask me anything in English...',
+                  hintStyle: GoogleFonts.outfit(
+                    fontSize: 14,
+                    color: isDark
+                        ? const Color(0xFF9D8EC4)
+                        : const Color(0xFF9D8EC4),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                onSubmitted: _sendMessage,
+                maxLines: null,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () => _sendMessage(_inputController.text),
+            child: Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFA855F7)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C3AED).withAlpha(102),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.send_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TypingDot extends StatefulWidget {
+  final Duration delay;
+  const _TypingDot({required this.delay});
+
+  @override
+  State<_TypingDot> createState() => _TypingDotState();
+}
+
+class _TypingDotState extends State<_TypingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _anim = Tween<double>(
+      begin: 0,
+      end: -6,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    Future.delayed(widget.delay, () {
+      if (mounted) _ctrl.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => Transform.translate(
+        offset: Offset(0, _anim.value),
+        child: Container(
+          width: 7,
+          height: 7,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: const BoxDecoration(
+            color: Color(0xFF7C3AED),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+}
